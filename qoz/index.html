@@ -1,0 +1,389 @@
+import React, { useState, useEffect } from 'react';
+import { Share2, Info, Building, TrendingUp, DollarSign, PieChart, ArrowRight, Download, Menu, X } from 'lucide-react';
+
+// --- Card Components ---
+const Card = ({ children, className = "" }) => (
+  <div className={`bg-white rounded-xl border border-slate-200 shadow-sm ${className}`}>
+    {children}
+  </div>
+);
+
+// --- Tooltip Helper ---
+const Tooltip = ({ text }) => (
+  <div className="group relative inline-block ml-2 cursor-help">
+    <Info size={14} className="text-slate-400 hover:text-slate-600" />
+    <div className="invisible group-hover:visible absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-slate-800 text-white text-xs rounded shadow-lg z-50 text-center">
+      {text}
+      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
+    </div>
+  </div>
+);
+
+// --- Main Application ---
+export default function TidelineCalculator() {
+  // State for Inputs
+  const [capitalGain, setCapitalGain] = useState(1000000);
+  const [fedTaxRate, setFedTaxRate] = useState(23.8); // 20% + 3.8% NIIT
+  const [stateTaxRate, setStateTaxRate] = useState(13.3); // CA Top Bracket
+  const [annualReturn, setAnnualReturn] = useState(10.0); // Conservative RE dev target
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  // State for Results
+  const [results, setResults] = useState({
+    standardFinal: 0,
+    ozFinal: 0,
+    taxSaved: 0,
+    taxDeferred: 0
+  });
+
+  // Calculate whenever inputs change
+  useEffect(() => {
+    const totalTaxRate = (fedTaxRate + stateTaxRate) / 100;
+    const years = 10;
+    
+    // --- Scenario A: Standard Taxable Investment ---
+    // 1. Pay tax immediately
+    const taxNow = capitalGain * totalTaxRate;
+    const initialInvestmentStandard = capitalGain - taxNow;
+    
+    // 2. Grow for 10 years (assuming annual compounding, taxes paid annually on gains is complex, 
+    // but for simplicity in RE comparisons, we often assume tax on sale or tax drag. 
+    // To be conservative/simple, we'll apply tax on the final gain)
+    // Actually, a fair comparison for "Stock Market" alternative usually assumes annual tax drag, 
+    // but let's assume a tax-deferred vehicle like a standard RE syndication that isn't OZ.
+    const futureValueStandardPreTax = initialInvestmentStandard * Math.pow(1 + annualReturn / 100, years);
+    const gainStandard = futureValueStandardPreTax - initialInvestmentStandard;
+    const taxOnGainStandard = gainStandard * totalTaxRate;
+    const standardFinal = futureValueStandardPreTax - taxOnGainStandard;
+
+    // --- Scenario B: Opportunity Zone (Tideline) ---
+    // 1. Invest 100% (Tax Deferred)
+    const initialInvestmentOZ = capitalGain;
+    
+    // 2. Pay deferred tax in 2027 (April). 
+    // We treat this as a cash outflow. To compare apples-to-apples, we subtract this future cost 
+    // from the final value, essentially treating it as a liability carried forward.
+    // Note: The tax bill is fixed at the time of investment (deferred amount).
+    const deferredTaxLiability = capitalGain * totalTaxRate;
+
+    // 3. Grow for 10 years
+    const futureValueOZ = initialInvestmentOZ * Math.pow(1 + annualReturn / 100, years);
+    
+    // 4. Tax on Gain is ZERO (10-year rule)
+    const ozFinal = futureValueOZ - deferredTaxLiability;
+
+    setResults({
+      standardFinal,
+      ozFinal,
+      taxSaved: ozFinal - standardFinal,
+      taxDeferred: deferredTaxLiability
+    });
+  }, [capitalGain, fedTaxRate, stateTaxRate, annualReturn]);
+
+  // Format currency
+  const fmt = (num) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(num);
+
+  return (
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
+      
+      {/* Navigation */}
+      <nav className="bg-slate-900 text-white sticky top-0 z-40 shadow-md">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16 items-center">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-amber-500 rounded-sm flex items-center justify-center">
+                <span className="font-bold text-slate-900 text-xl">T</span>
+              </div>
+              <span className="font-bold text-xl tracking-wide">TIDELINE <span className="font-light text-slate-400">PARTNERS</span></span>
+            </div>
+            
+            {/* Desktop Nav */}
+            <div className="hidden md:flex space-x-8 text-sm font-medium text-slate-300">
+              <a href="#" className="hover:text-amber-500 transition">Projects</a>
+              <a href="#" className="hover:text-amber-500 transition">Opportunity Zones</a>
+              <a href="#" className="hover:text-amber-500 transition">Investors</a>
+              <a href="#" className="hover:text-amber-500 transition">Contact</a>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <div className="md:hidden">
+              <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-slate-300 hover:text-white">
+                {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Nav */}
+        {isMenuOpen && (
+          <div className="md:hidden bg-slate-800 p-4 space-y-4">
+            <a href="#" className="block text-slate-300 hover:text-white">Projects</a>
+            <a href="#" className="block text-slate-300 hover:text-white">Opportunity Zones</a>
+            <a href="#" className="block text-slate-300 hover:text-white">Investors</a>
+          </div>
+        )}
+      </nav>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        
+        {/* Hero Section */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-4">
+            Vista Opportunity Zone Calculator
+          </h1>
+          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+            Calculate the potential tax-equivalent yield of investing your capital gains into the Pepper Tree / Vista Downtown redevelopment project.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          
+          {/* LEFT COLUMN: Controls (4/12) */}
+          <div className="lg:col-span-4 space-y-6">
+            <Card className="p-6 sticky top-24">
+              <h2 className="text-xl font-bold mb-6 flex items-center">
+                <DollarSign className="w-5 h-5 mr-2 text-amber-600" />
+                Investment Inputs
+              </h2>
+
+              {/* Capital Gain Input */}
+              <div className="mb-6">
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  Capital Gain Amount
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2.5 text-slate-400">$</span>
+                  <input
+                    type="number"
+                    value={capitalGain}
+                    onChange={(e) => setCapitalGain(Number(e.target.value))}
+                    className="w-full pl-8 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition"
+                  />
+                </div>
+                <input
+                  type="range"
+                  min="100000"
+                  max="10000000"
+                  step="50000"
+                  value={capitalGain}
+                  onChange={(e) => setCapitalGain(Number(e.target.value))}
+                  className="w-full mt-3 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-amber-600"
+                />
+              </div>
+
+              {/* Tax Rates */}
+              <div className="mb-6 grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">
+                    Federal Rate (%)
+                  </label>
+                  <input
+                    type="number"
+                    value={fedTaxRate}
+                    onChange={(e) => setFedTaxRate(Number(e.target.value))}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-amber-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">
+                    State Rate (%)
+                  </label>
+                  <input
+                    type="number"
+                    value={stateTaxRate}
+                    onChange={(e) => setStateTaxRate(Number(e.target.value))}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-amber-500"
+                  />
+                </div>
+              </div>
+
+              {/* Return Rate */}
+              <div className="mb-8">
+                <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center">
+                  Target Annual Return (IRR)
+                  <Tooltip text="Estimated annual compound growth rate. Real estate development typically targets 15%+, but we default to 10% for conservative modeling." />
+                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-slate-500 text-sm">5%</span>
+                  <span className="font-bold text-amber-600">{annualReturn}%</span>
+                  <span className="text-slate-500 text-sm">20%</span>
+                </div>
+                <input
+                  type="range"
+                  min="5"
+                  max="20"
+                  step="0.5"
+                  value={annualReturn}
+                  onChange={(e) => setAnnualReturn(Number(e.target.value))}
+                  className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-amber-600"
+                />
+              </div>
+
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                <h4 className="text-blue-900 font-bold text-sm mb-2">Assumptions</h4>
+                <ul className="text-xs text-blue-800 space-y-1 list-disc pl-4">
+                  <li>Investment Date: Late 2025/2026</li>
+                  <li>Deferred Tax Paid: April 2027</li>
+                  <li>Asset Hold Period: 10 Years</li>
+                  <li>Exit Year: 2035/2036</li>
+                </ul>
+              </div>
+            </Card>
+          </div>
+
+          {/* RIGHT COLUMN: Results (8/12) */}
+          <div className="lg:col-span-8 space-y-6">
+            
+            {/* Summary Metrics */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card className="p-5 border-l-4 border-l-slate-400 bg-slate-50">
+                <div className="text-slate-500 text-sm font-medium mb-1">Initial Tax Deferral</div>
+                <div className="text-2xl font-bold text-slate-700">{fmt(results.taxDeferred)}</div>
+                <div className="text-xs text-slate-400 mt-1">Due April 2027</div>
+              </Card>
+              
+              <Card className="p-5 border-l-4 border-l-amber-500 bg-amber-50">
+                <div className="text-amber-800 text-sm font-medium mb-1">Additional Profit (After-Tax)</div>
+                <div className="text-3xl font-bold text-amber-600">{fmt(results.taxSaved)}</div>
+                <div className="text-xs text-amber-700 mt-1">vs. Standard Investment</div>
+              </Card>
+
+              <Card className="p-5 border-l-4 border-l-emerald-500 bg-emerald-50">
+                <div className="text-emerald-800 text-sm font-medium mb-1">Total 10-Year Value</div>
+                <div className="text-2xl font-bold text-emerald-700">{fmt(results.ozFinal)}</div>
+                <div className="text-xs text-emerald-800 mt-1">100% Tax-Free Exit</div>
+              </Card>
+            </div>
+
+            {/* Visualizer Chart */}
+            <Card className="p-6 md:p-8">
+              <h3 className="text-lg font-bold text-slate-800 mb-6">10-Year After-Tax Wealth Comparison</h3>
+              
+              <div className="space-y-6">
+                {/* Standard Bar */}
+                <div>
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="font-semibold text-slate-600">Standard Taxable Investment</span>
+                    <span className="font-bold text-slate-900">{fmt(results.standardFinal)}</span>
+                  </div>
+                  <div className="w-full h-12 bg-slate-100 rounded-r-lg relative overflow-hidden flex items-center">
+                    <div 
+                      className="h-full bg-slate-400 rounded-r-lg transition-all duration-1000 ease-out"
+                      style={{ width: `${(results.standardFinal / results.ozFinal) * 100}%` }}
+                    ></div>
+                    <span className="absolute left-4 text-white font-medium drop-shadow-md z-10 text-sm">
+                      Tax Drag Reduces Growth
+                    </span>
+                  </div>
+                </div>
+
+                {/* Tideline OZ Bar */}
+                <div>
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="font-bold text-amber-700 flex items-center">
+                      <TrendingUp size={16} className="mr-1" />
+                      Tideline OZ Fund (Pepper Tree)
+                    </span>
+                    <span className="font-bold text-amber-600 text-lg">{fmt(results.ozFinal)}</span>
+                  </div>
+                  <div className="w-full h-12 bg-amber-100 rounded-r-lg relative overflow-hidden flex items-center ring-2 ring-amber-500 ring-offset-2">
+                    <div 
+                      className="h-full bg-gradient-to-r from-amber-500 to-amber-600 rounded-r-lg transition-all duration-1000 ease-out"
+                      style={{ width: '100%' }}
+                    ></div>
+                    <span className="absolute left-4 text-white font-bold drop-shadow-md z-10 text-sm">
+                      Full Compounding + Tax-Free Exit
+                    </span>
+                    <div className="absolute right-4 text-white/90 text-xs font-semibold bg-white/20 px-2 py-1 rounded">
+                      WINNER
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-8 p-4 bg-slate-50 rounded-lg text-sm text-slate-600 border border-slate-200">
+                <p className="leading-relaxed">
+                  <strong>The "Home Run" Benefit:</strong> By investing in the Tideline Opportunity Zone Fund, your initial {fmt(capitalGain)} grows without tax drag for 10 years. Even after paying the deferred tax in 2027, the <strong>{fmt(results.ozFinal - results.standardFinal)}</strong> advantage comes from the fact that all appreciation on the project is permanently tax-free.
+                </p>
+              </div>
+            </Card>
+
+            {/* Project Context */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card className="p-0 overflow-hidden">
+                <div className="bg-slate-900 p-6 text-white h-full flex flex-col justify-between">
+                  <div>
+                    <h3 className="font-bold text-lg mb-2 flex items-center">
+                      <Building className="mr-2 text-amber-400" size={20} />
+                      The Project: Pepper Tree
+                    </h3>
+                    <p className="text-slate-300 text-sm mb-4">
+                      An 89-unit mixed-use development in the heart of Downtown Vista, CA. This project addresses the critical housing shortage in North County San Diego.
+                    </p>
+                    <div className="space-y-2">
+                      <div className="flex items-center text-sm">
+                        <span className="w-2 h-2 bg-amber-500 rounded-full mr-2"></span>
+                        Qualified Opportunity Zone
+                      </div>
+                      <div className="flex items-center text-sm">
+                        <span className="w-2 h-2 bg-amber-500 rounded-full mr-2"></span>
+                        Fully Entitled
+                      </div>
+                      <div className="flex items-center text-sm">
+                        <span className="w-2 h-2 bg-amber-500 rounded-full mr-2"></span>
+                        High-Walkability Score
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-6 pt-6 border-t border-slate-700">
+                    <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Location</p>
+                    <p className="font-semibold">Vista, California (San Diego County)</p>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-6 flex flex-col justify-center items-center text-center bg-gradient-to-br from-white to-amber-50">
+                <h3 className="font-bold text-slate-900 text-lg mb-2">Ready to Defer Taxes?</h3>
+                <p className="text-slate-600 text-sm mb-6">
+                  Get the full investor prospectus for the Vista Qualified Opportunity Fund I.
+                </p>
+                <button className="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center transition shadow-lg shadow-amber-600/20 group">
+                  <Download className="mr-2 w-5 h-5 group-hover:-translate-y-1 transition-transform" />
+                  Request Investor Packet
+                </button>
+                <div className="mt-4 flex items-center justify-center space-x-4">
+                   <button className="text-slate-400 hover:text-slate-600">
+                     <Share2 size={20} />
+                   </button>
+                </div>
+              </Card>
+            </div>
+
+          </div>
+        </div>
+      </main>
+
+      <footer className="bg-slate-900 text-slate-400 py-12 mt-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8 text-sm">
+          <div>
+            <h4 className="text-white font-bold mb-4">Tideline Partners</h4>
+            <p className="mb-4">Developing community-focused real estate in San Diego.</p>
+            <p>© 2025 Tideline Partners.</p>
+          </div>
+          <div>
+            <h4 className="text-white font-bold mb-4">Disclaimer</h4>
+            <p className="text-xs leading-relaxed">
+              This calculator is for illustrative purposes only and does not constitute tax, legal, or investment advice. Actual returns may vary. The "Standard Investment" scenario assumes a taxable account with capital gains taxes paid on the final sale. The Opportunity Zone scenario assumes compliance with all QOF regulations, including the 10-year hold period. Please consult your CPA or RIA.
+            </p>
+          </div>
+          <div>
+            <h4 className="text-white font-bold mb-4">Contact</h4>
+            <p>123 Main Street, Suite 200</p>
+            <p>Vista, CA 92084</p>
+            <p className="mt-2">invest@tidelinepartners.com</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
