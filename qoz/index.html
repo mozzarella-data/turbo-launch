@@ -1,418 +1,642 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tideline Partners - Opportunity Zone Calculator</title>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>QOZ Concept Widget — Tideline-style demo</title>
+  <style>
+    :root{
+      --bg:#070b18;
+      --card:#0f1733;
+      --card2:#0c132b;
+      --line:#23315f;
+      --text:#eaf0ff;
+      --muted:#93a6d6;
+      --good:#2ee59d;
+      --bad:#ff6b6b;
+      --warn:#ffd166;
+      --accent:#3d5afe;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      background: radial-gradient(1200px 700px at 20% -10%, rgba(61,90,254,.25), transparent 60%),
+                  radial-gradient(900px 600px at 90% 0%, rgba(46,229,157,.12), transparent 55%),
+                  linear-gradient(180deg, #050815, var(--bg) 45%, #050815);
+      color:var(--text);
+    }
+    .wrap{max-width:1200px;margin:0 auto;padding:20px 18px 26px}
+    header{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;align-items:flex-start}
+    h1{margin:0;font-size:18px;letter-spacing:.2px}
+    .sub{margin:6px 0 0;color:var(--muted);font-size:12.8px;max-width:900px;line-height:1.4}
+    .pillbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:2px}
+    .pill{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:6px 10px;border-radius:999px;
+      border:1px solid rgba(35,49,95,.9);
+      background:rgba(12,19,43,.55);
+      color:#cfe0ff;font-size:12px;
+      user-select:none;
+    }
 
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    .cols{
+      margin-top:14px;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:14px;
+      align-items:start;
+    }
+    @media (max-width: 980px){
+      .cols{grid-template-columns:1fr}
+    }
 
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        /* Range Slider Styling */
-        input[type=range] {
-            -webkit-appearance: none; 
-            background: transparent; 
-        }
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-        }
-        input[type=range]:focus {
-            outline: none; 
-        }
-    </style>
+    .card{
+      background:rgba(15,23,51,.92);
+      border:1px solid rgba(35,49,95,.9);
+      border-radius:14px;
+      padding:14px;
+    }
+    .card h2{margin:0 0 8px;font-size:13px;color:#cfe0ff;font-weight:750}
+    .card .hint{color:var(--muted);font-size:12px;line-height:1.4;margin-bottom:12px}
+
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    @media (max-width: 600px){ .grid2{grid-template-columns:1fr} }
+
+    label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px}
+    input,select{
+      width:100%;
+      padding:10px 11px;
+      border-radius:10px;
+      border:1px solid rgba(35,49,95,.9);
+      background:#08102a;
+      color:var(--text);
+      outline:none;
+    }
+    input:focus,select:focus{border-color:rgba(61,90,254,.95)}
+    .row{margin-top:10px}
+    .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    button{
+      cursor:pointer;
+      border:none;
+      border-radius:10px;
+      padding:10px 12px;
+      font-weight:750;
+      background:#22305d;color:var(--text);
+    }
+    button.primary{background:var(--accent)}
+    button.ghost{background:transparent;border:1px solid rgba(35,49,95,.9)}
+    button.small{padding:8px 10px;font-size:12px}
+
+    .kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+    @media (max-width: 600px){ .kpis{grid-template-columns:1fr} }
+    .kpi{
+      padding:12px;border-radius:12px;
+      border:1px solid rgba(35,49,95,.9);
+      background:rgba(12,19,43,.55);
+    }
+    .kpi .lbl{font-size:12px;color:var(--muted)}
+    .kpi .val{margin-top:6px;font-size:18px;font-weight:850}
+    .kpi .subval{margin-top:6px;font-size:12px;color:var(--muted);line-height:1.35}
+    .good{color:var(--good)} .bad{color:var(--bad)} .warn{color:var(--warn)}
+
+    .timeline{
+      margin-top:12px;
+      border-radius:12px;
+      border:1px solid rgba(35,49,95,.9);
+      background:rgba(12,19,43,.55);
+      padding:12px;
+    }
+    .trow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .tstep{
+      flex:1;
+      min-width:180px;
+      padding:10px 10px;
+      border-radius:12px;
+      border:1px solid rgba(35,49,95,.75);
+      background:rgba(8,16,42,.55);
+    }
+    .tstep .t{font-size:12px;color:var(--muted)}
+    .tstep .b{margin-top:4px;font-weight:850}
+    .tstep .s{margin-top:6px;font-size:12px;color:var(--muted);line-height:1.35}
+
+    .callout{
+      margin-top:12px;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid rgba(35,49,95,.9);
+      background:rgba(8,16,42,.55);
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.45;
+    }
+    .callout strong{color:#cfe0ff}
+    details{margin-top:12px}
+    summary{cursor:pointer;color:#cfe0ff;font-weight:750}
+    .fine{margin-top:8px;color:var(--muted);font-size:12px;line-height:1.45}
+    .minihr{height:1px;background:rgba(35,49,95,.75);margin:12px 0}
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;}
+  </style>
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-900">
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>QOZ concept widget (generic) + Pepper Tree example (specific)</h1>
+        <div class="sub">
+          This is an <b>education / scenario</b> tool. It’s designed to be <b>rule-accurate</b> at a high level and cash-flow aware,
+          but it’s <b>not tax advice</b>. It shows the “killer moment”: <b>pay tax now</b> vs <b>defer + potentially exclude new appreciation after 10 years</b>.
+        </div>
+      </div>
+      <div class="pillbar">
+        <span class="pill">Desktop: side-by-side</span>
+        <span class="pill">Mobile: stacked</span>
+        <span class="pill">Prefilled with favorable demo numbers</span>
+      </div>
+    </header>
 
-    <!-- Navigation -->
-    <nav class="bg-slate-900 text-white sticky top-0 z-40 shadow-md">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16 items-center">
-                <div class="flex items-center space-x-2">
-                    <div class="w-8 h-8 bg-amber-500 rounded-sm flex items-center justify-center">
-                        <span class="font-bold text-slate-900 text-xl">T</span>
-                    </div>
-                    <span class="font-bold text-xl tracking-wide">TIDELINE <span class="font-light text-slate-400">PARTNERS</span></span>
-                </div>
-                
-                <!-- Desktop Nav -->
-                <div class="hidden md:flex space-x-8 text-sm font-medium text-slate-300">
-                    <a href="#" class="hover:text-amber-500 transition">Projects</a>
-                    <a href="#" class="hover:text-amber-500 transition">Opportunity Zones</a>
-                    <a href="#" class="hover:text-amber-500 transition">Investors</a>
-                    <a href="#" class="hover:text-amber-500 transition">Contact</a>
-                </div>
-
-                <!-- Mobile Menu Button -->
-                <div class="md:hidden">
-                    <button id="menu-btn" class="text-slate-300 hover:text-white focus:outline-none">
-                        <i data-lucide="menu" class="w-6 h-6"></i>
-                    </button>
-                </div>
-            </div>
+    <div class="cols">
+      <!-- LEFT: QOZ Decision Engine -->
+      <section class="card" id="leftCard">
+        <h2>1) QOZ decision engine (generic)</h2>
+        <div class="hint">
+          Use this panel without mentioning any specific deal. It answers: “Should I even consider a QOZ deferral + 10-year hold strategy?”
         </div>
 
-        <!-- Mobile Nav -->
-        <div id="mobile-menu" class="hidden md:hidden bg-slate-800 p-4 space-y-4">
-            <a href="#" class="block text-slate-300 hover:text-white">Projects</a>
-            <a href="#" class="block text-slate-300 hover:text-white">Opportunity Zones</a>
-            <a href="#" class="block text-slate-300 hover:text-white">Investors</a>
+        <div class="grid2">
+          <div>
+            <label>Eligible capital gain (not sale price) ($)</label>
+            <input id="gain" type="number" min="0" step="1000" value="4000000">
+          </div>
+          <div>
+            <label>Amount invested into QOF ($)</label>
+            <input id="qofInvest" type="number" min="0" step="1000" value="4000000">
+          </div>
+
+          <div>
+            <label>Federal LTCG rate (%)</label>
+            <input id="fedRate" type="number" min="0" max="60" step="0.1" value="20">
+          </div>
+          <div>
+            <label>NIIT (%)</label>
+            <input id="niitRate" type="number" min="0" max="10" step="0.1" value="3.8">
+          </div>
+
+          <div>
+            <label>State tax rate (%)</label>
+            <input id="stateRate" type="number" min="0" max="20" step="0.1" value="13.3">
+          </div>
+          <div>
+            <label>State conforms to QOZ?</label>
+            <select id="stateConform">
+              <option value="no" selected>No (e.g., CA does not conform)</option>
+              <option value="yes">Yes (assume conforms)</option>
+            </select>
+          </div>
+
+          <div>
+            <label>Hold period (years)</label>
+            <input id="holdYears" type="number" min="1" max="20" step="1" value="10">
+          </div>
+          <div>
+            <label>Assumed annual return (for generic comparison) (%)</label>
+            <input id="assumedReturn" type="number" min="-50" max="50" step="0.1" value="10">
+          </div>
+
+          <div>
+            <label>Pay deferred tax in 2026 using…</label>
+            <select id="payDeferredFrom">
+              <option value="outside" selected>Outside cash (most favorable)</option>
+              <option value="sell">Sell part of the investment (less favorable)</option>
+            </select>
+          </div>
+          <div>
+            <label>Tax on NON-QOZ appreciation at exit?</label>
+            <input id="exitTaxRate" type="number" min="0" max="60" step="0.1" value="23.8">
+          </div>
         </div>
-    </nav>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        
-        <!-- Hero Section -->
-        <div class="text-center mb-12">
-            <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 mb-4">
-                Vista Opportunity Zone Calculator
-            </h1>
-            <p class="text-lg text-slate-600 max-w-2xl mx-auto">
-                Calculate the potential tax-equivalent yield of investing your capital gains into the Pepper Tree / Vista Downtown redevelopment project.
-            </p>
+        <div class="btnrow">
+          <button class="primary" id="recalc">Recalculate</button>
+          <button class="ghost" id="resetDemo">Reset to favorable demo</button>
+          <button class="small" id="copyLink">Copy shareable link</button>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            
-            <!-- LEFT COLUMN: Controls (4/12) -->
-            <div class="lg:col-span-4 space-y-6">
-                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 sticky top-24">
-                    <h2 class="text-xl font-bold mb-6 flex items-center">
-                        <i data-lucide="dollar-sign" class="w-5 h-5 mr-2 text-amber-600"></i>
-                        Investment Inputs
-                    </h2>
-
-                    <!-- Capital Gain Input -->
-                    <div class="mb-6">
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">
-                            Capital Gain Amount
-                        </label>
-                        <div class="relative">
-                            <span class="absolute left-3 top-2.5 text-slate-400">$</span>
-                            <input type="number" id="input-gain" value="1000000" class="w-full pl-8 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition">
-                        </div>
-                        <input type="range" id="range-gain" min="100000" max="10000000" step="50000" value="1000000" class="w-full mt-3 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-amber-600">
-                    </div>
-
-                    <!-- Tax Rates -->
-                    <div class="mb-6 grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">
-                                Federal Rate (%)
-                            </label>
-                            <input type="number" id="input-fed" value="23.8" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-amber-500 focus:border-amber-500 outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">
-                                State Rate (%)
-                            </label>
-                            <input type="number" id="input-state" value="13.3" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-amber-500 focus:border-amber-500 outline-none">
-                        </div>
-                    </div>
-
-                    <!-- Return Rate -->
-                    <div class="mb-8">
-                        <label class="block text-sm font-semibold text-slate-700 mb-2 flex items-center">
-                            Target Annual Return (IRR)
-                            <!-- Tooltip -->
-                            <div class="group relative inline-block ml-2 cursor-help">
-                                <i data-lucide="info" class="w-3.5 h-3.5 text-slate-400 hover:text-slate-600"></i>
-                                <div class="invisible group-hover:visible absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-slate-800 text-white text-xs rounded shadow-lg z-50 text-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                    Estimated annual compound growth rate. Real estate development typically targets 15%+, but we default to 10% for conservative modeling.
-                                    <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
-                                </div>
-                            </div>
-                        </label>
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-slate-500 text-sm">5%</span>
-                            <span id="display-return" class="font-bold text-amber-600">10%</span>
-                            <span class="text-slate-500 text-sm">20%</span>
-                        </div>
-                        <input type="range" id="range-return" min="5" max="20" step="0.5" value="10.0" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-amber-600">
-                    </div>
-
-                    <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
-                        <h4 class="text-blue-900 font-bold text-sm mb-2">Assumptions</h4>
-                        <ul class="text-xs text-blue-800 space-y-1 list-disc pl-4">
-                            <li>Investment Date: Late 2025/2026</li>
-                            <li>Deferred Tax Paid: April 2027</li>
-                            <li>Asset Hold Period: 10 Years</li>
-                            <li>Exit Year: 2035/2036</li>
-                        </ul>
-                    </div>
-                </div>
+        <div class="timeline" aria-label="timeline strip">
+          <div class="trow">
+            <div class="tstep">
+              <div class="t">Today</div>
+              <div class="b">Choose a path</div>
+              <div class="s">Either pay tax now, or invest eligible gain into a QOF (within required timelines).</div>
             </div>
-
-            <!-- RIGHT COLUMN: Results (8/12) -->
-            <div class="lg:col-span-8 space-y-6">
-                
-                <!-- Summary Metrics -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 border-l-4 border-l-slate-400 bg-slate-50">
-                        <div class="text-slate-500 text-sm font-medium mb-1">Initial Tax Deferral</div>
-                        <div id="val-deferred" class="text-2xl font-bold text-slate-700">$0</div>
-                        <div class="text-xs text-slate-400 mt-1">Due April 2027</div>
-                    </div>
-                    
-                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 border-l-4 border-l-amber-500 bg-amber-50">
-                        <div class="text-amber-800 text-sm font-medium mb-1">Additional Profit (After-Tax)</div>
-                        <div id="val-saved" class="text-3xl font-bold text-amber-600">$0</div>
-                        <div class="text-xs text-amber-700 mt-1">vs. Standard Investment</div>
-                    </div>
-
-                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 border-l-4 border-l-emerald-500 bg-emerald-50">
-                        <div class="text-emerald-800 text-sm font-medium mb-1">Total 10-Year Value</div>
-                        <div id="val-oz-final" class="text-2xl font-bold text-emerald-700">$0</div>
-                        <div class="text-xs text-emerald-800 mt-1">100% Tax-Free Exit</div>
-                    </div>
-                </div>
-
-                <!-- Visualizer Chart -->
-                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 md:p-8">
-                    <h3 class="text-lg font-bold text-slate-800 mb-6">10-Year After-Tax Wealth Comparison</h3>
-                    
-                    <div class="space-y-6">
-                        <!-- Standard Bar -->
-                        <div>
-                            <div class="flex justify-between text-sm mb-2">
-                                <span class="font-semibold text-slate-600">Standard Taxable Investment</span>
-                                <span id="val-std-final" class="font-bold text-slate-900">$0</span>
-                            </div>
-                            <div class="w-full h-12 bg-slate-100 rounded-r-lg relative overflow-hidden flex items-center">
-                                <div id="bar-std" class="h-full bg-slate-400 rounded-r-lg transition-all duration-1000 ease-out" style="width: 50%"></div>
-                                <span class="absolute left-4 text-white font-medium drop-shadow-md z-10 text-sm whitespace-nowrap">
-                                    Tax Drag Reduces Growth
-                                </span>
-                            </div>
-                        </div>
-
-                        <!-- Tideline OZ Bar -->
-                        <div>
-                            <div class="flex justify-between text-sm mb-2">
-                                <span class="font-bold text-amber-700 flex items-center">
-                                    <i data-lucide="trending-up" class="w-4 h-4 mr-1"></i>
-                                    Tideline OZ Fund (Pepper Tree)
-                                </span>
-                                <span id="val-oz-final-sm" class="font-bold text-amber-600 text-lg">$0</span>
-                            </div>
-                            <div class="w-full h-12 bg-amber-100 rounded-r-lg relative overflow-hidden flex items-center ring-2 ring-amber-500 ring-offset-2">
-                                <div id="bar-oz" class="h-full bg-gradient-to-r from-amber-500 to-amber-600 rounded-r-lg transition-all duration-1000 ease-out" style="width: 100%"></div>
-                                <span class="absolute left-4 text-white font-bold drop-shadow-md z-10 text-sm whitespace-nowrap">
-                                    Full Compounding + Tax-Free Exit
-                                </span>
-                                <div class="absolute right-4 text-white/90 text-xs font-semibold bg-white/20 px-2 py-1 rounded hidden sm:block">
-                                    WINNER
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mt-8 p-4 bg-slate-50 rounded-lg text-sm text-slate-600 border border-slate-200">
-                        <p class="leading-relaxed">
-                            <strong>The "Home Run" Benefit:</strong> By investing in the Tideline Opportunity Zone Fund, your initial <span id="text-gain" class="font-medium">$1,000,000</span> grows without tax drag for 10 years. Even after paying the deferred tax in 2027, the <strong id="text-diff" class="text-amber-700">$0</strong> advantage comes from the fact that all appreciation on the project is permanently tax-free.
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Project Context -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-0 overflow-hidden flex flex-col">
-                        <div class="bg-slate-900 p-6 text-white h-full flex flex-col justify-between">
-                            <div>
-                                <h3 class="font-bold text-lg mb-2 flex items-center">
-                                    <i data-lucide="building" class="w-5 h-5 mr-2 text-amber-400"></i>
-                                    The Project: Pepper Tree
-                                </h3>
-                                <p class="text-slate-300 text-sm mb-4">
-                                    An 89-unit mixed-use development in the heart of Downtown Vista, CA. This project addresses the critical housing shortage in North County San Diego.
-                                </p>
-                                <div class="space-y-2">
-                                    <div class="flex items-center text-sm">
-                                        <span class="w-2 h-2 bg-amber-500 rounded-full mr-2"></span>
-                                        Qualified Opportunity Zone
-                                    </div>
-                                    <div class="flex items-center text-sm">
-                                        <span class="w-2 h-2 bg-amber-500 rounded-full mr-2"></span>
-                                        Fully Entitled
-                                    </div>
-                                    <div class="flex items-center text-sm">
-                                        <span class="w-2 h-2 bg-amber-500 rounded-full mr-2"></span>
-                                        High-Walkability Score
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="mt-6 pt-6 border-t border-slate-700">
-                                <p class="text-xs text-slate-400 uppercase tracking-wider mb-1">Location</p>
-                                <p class="font-semibold">Vista, California (San Diego County)</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-gradient-to-br from-white to-amber-50 rounded-xl border border-slate-200 shadow-sm p-6 flex flex-col justify-center items-center text-center">
-                        <h3 class="font-bold text-slate-900 text-lg mb-2">Ready to Defer Taxes?</h3>
-                        <p class="text-slate-600 text-sm mb-6">
-                            Get the full investor prospectus for the Vista Qualified Opportunity Fund I.
-                        </p>
-                        <button class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center transition shadow-lg shadow-amber-600/20 group">
-                            <i data-lucide="download" class="mr-2 w-5 h-5 group-hover:-translate-y-1 transition-transform"></i>
-                            Request Investor Packet
-                        </button>
-                        <div class="mt-4 flex items-center justify-center space-x-4">
-                           <button class="text-slate-400 hover:text-slate-600">
-                             <i data-lucide="share-2" class="w-5 h-5"></i>
-                           </button>
-                        </div>
-                    </div>
-                </div>
-
+            <div class="tstep">
+              <div class="t">12/31/2026</div>
+              <div class="b">Deferred gain tax is due</div>
+              <div class="s">Deferral is not forever under the original regime. You still owe tax on the original deferred gain.</div>
             </div>
+            <div class="tstep">
+              <div class="t">Year <span id="tyHold">10</span></div>
+              <div class="b">Exit</div>
+              <div class="s">If held long enough, post-investment appreciation inside the QOZ investment may be excluded federally (concept model).</div>
+            </div>
+          </div>
         </div>
-    </main>
 
-    <footer class="bg-slate-900 text-slate-400 py-12 mt-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8 text-sm">
-            <div>
-                <h4 class="text-white font-bold mb-4">Tideline Partners</h4>
-                <p class="mb-4">Developing community-focused real estate in San Diego.</p>
-                <p>© 2025 Tideline Partners.</p>
-            </div>
-            <div>
-                <h4 class="text-white font-bold mb-4">Disclaimer</h4>
-                <p class="text-xs leading-relaxed">
-                    This calculator is for illustrative purposes only and does not constitute tax, legal, or investment advice. Actual returns may vary. The "Standard Investment" scenario assumes a taxable account with capital gains taxes paid on the final sale. The Opportunity Zone scenario assumes compliance with all QOF regulations, including the 10-year hold period. Please consult your CPA or RIA.
-                </p>
-            </div>
-            <div>
-                <h4 class="text-white font-bold mb-4">Contact</h4>
-                <p>123 Main Street, Suite 200</p>
-                <p>Vista, CA 92084</p>
-                <p class="mt-2">invest@tidelinepartners.com</p>
-            </div>
+        <div class="kpis">
+          <div class="kpi">
+            <div class="lbl">Do nothing (pay tax now) — ending after-tax value</div>
+            <div class="val bad" id="noQozEnd">$—</div>
+            <div class="subval" id="noQozExplain">—</div>
+          </div>
+          <div class="kpi">
+            <div class="lbl">Use QOZ (defer + possible tax-free appreciation) — ending after-tax value</div>
+            <div class="val good" id="qozEnd">$—</div>
+            <div class="subval" id="qozExplain">—</div>
+          </div>
         </div>
-    </footer>
 
-    <!-- JavaScript Logic -->
-    <script>
-        // --- Icon Initialization ---
-        lucide.createIcons();
+        <div class="kpis">
+          <div class="kpi">
+            <div class="lbl">Deferred original gain tax due by ~2026 (concept)</div>
+            <div class="val warn" id="deferredTax">$—</div>
+            <div class="subval" id="deferredExplain">—</div>
+          </div>
+          <div class="kpi">
+            <div class="lbl">Difference (QOZ − do nothing)</div>
+            <div class="val" id="delta">$—</div>
+            <div class="subval" id="deltaExplain">—</div>
+          </div>
+        </div>
 
-        // --- DOM Elements ---
-        const els = {
-            inputGain: document.getElementById('input-gain'),
-            rangeGain: document.getElementById('range-gain'),
-            inputFed: document.getElementById('input-fed'),
-            inputState: document.getElementById('input-state'),
-            rangeReturn: document.getElementById('range-return'),
-            displayReturn: document.getElementById('display-return'),
-            
-            valDeferred: document.getElementById('val-deferred'),
-            valSaved: document.getElementById('val-saved'),
-            valOzFinal: document.getElementById('val-oz-final'),
-            valOzFinalSm: document.getElementById('val-oz-final-sm'),
-            valStdFinal: document.getElementById('val-std-final'),
-            
-            barStd: document.getElementById('bar-std'),
-            textGain: document.getElementById('text-gain'),
-            textDiff: document.getElementById('text-diff'),
+        <div class="callout">
+          <strong>Reality checks:</strong><br>
+          • This model assumes a clean 10-year hold for the QOZ exclusion concept.<br>
+          • “State conforms” matters. Example: CA generally doesn’t conform, so state taxes may still apply.<br>
+          • This is a scenario tool, not a substitute for your CPA.
+        </div>
 
-            menuBtn: document.getElementById('menu-btn'),
-            mobileMenu: document.getElementById('mobile-menu')
-        };
+        <details>
+          <summary>Assumptions (what this model does / doesn’t do)</summary>
+          <div class="fine">
+            <ul>
+              <li>It compares two paths using cash-flow logic: invest after paying tax now vs invest pre-tax and pay deferred tax later.</li>
+              <li>It treats QOZ “tax-free appreciation” as applying to <i>post-investment appreciation</i> (concept only).</li>
+              <li>It does <b>not</b> try to model depreciation, refinancing, K-1 timing, AMT, loss harvesting, or step-up edge cases.</li>
+            </ul>
+          </div>
+        </details>
+      </section>
 
-        // --- Formatting ---
-        const fmt = new Intl.NumberFormat('en-US', { 
-            style: 'currency', 
-            currency: 'USD', 
-            maximumFractionDigits: 0 
-        });
+      <!-- RIGHT: Pepper Tree Example -->
+      <section class="card" id="rightCard">
+        <h2>2) Pepper Tree Lofts example (specific deal overlay)</h2>
+        <div class="hint">
+          This panel assumes a QOZ-eligible fund structure and uses Lev’s headline numbers as a <b>projection</b>:
+          <span class="mono">2.5x equity multiple</span> over 10 years, <span class="mono">~8% cash-on-cash</span> average, <span class="mono">~13% IRR</span> (headline).
+        </div>
 
-        // --- Calculation Logic ---
-        function calculate() {
-            // Get Values
-            const capitalGain = parseFloat(els.inputGain.value) || 0;
-            const fedRate = parseFloat(els.inputFed.value) || 0;
-            const stateRate = parseFloat(els.inputState.value) || 0;
-            const annualReturn = parseFloat(els.rangeReturn.value) || 0;
+        <div class="grid2">
+          <div>
+            <label>Allocate to Pepper Tree ($)</label>
+            <input id="pepAlloc" type="number" min="0" step="1000" value="1000000">
+          </div>
+          <div>
+            <label>Hold (years) — locked to match example</label>
+            <input id="pepHold" type="number" min="1" max="20" step="1" value="10" disabled>
+          </div>
 
-            // Update UI mirrors
-            els.rangeGain.value = capitalGain;
-            els.inputGain.value = capitalGain; // Ensure sync if range moved
-            els.displayReturn.innerText = annualReturn + '%';
-            els.textGain.innerText = fmt.format(capitalGain);
+          <div>
+            <label>Equity multiple (10-yr) — projection</label>
+            <input id="pepMultiple" type="number" min="0" step="0.01" value="2.5">
+          </div>
+          <div>
+            <label>Avg cash-on-cash (annual) — projection (%)</label>
+            <input id="pepCoC" type="number" min="-50" max="50" step="0.1" value="8">
+          </div>
 
-            // Constants
-            const totalTaxRate = (fedRate + stateRate) / 100;
-            const years = 10;
+          <div>
+            <label>Preferred return (pref) (%)</label>
+            <input id="pepPref" type="number" min="0" max="30" step="0.1" value="8">
+          </div>
+          <div>
+            <label>Promote (%)</label>
+            <input id="pepPromote" type="number" min="0" max="50" step="0.1" value="20">
+          </div>
+        </div>
 
-            // --- Scenario A: Standard Taxable Investment ---
-            const taxNow = capitalGain * totalTaxRate;
-            const initialInvStandard = capitalGain - taxNow;
-            
-            // FV = PV * (1 + r)^n
-            const futureValStdPreTax = initialInvStandard * Math.pow(1 + annualReturn / 100, years);
-            const gainStd = futureValStdPreTax - initialInvStandard;
-            const taxOnGainStd = gainStd * totalTaxRate;
-            const standardFinal = futureValStdPreTax - taxOnGainStd;
+        <div class="minihr"></div>
 
-            // --- Scenario B: Opportunity Zone ---
-            const initialInvOZ = capitalGain; // Defer tax
-            const deferredTaxLiability = capitalGain * totalTaxRate; // Paid in 2027
-            
-            // Growth is tax free on the backend
-            const futureValOZ = initialInvOZ * Math.pow(1 + annualReturn / 100, years);
-            const ozFinal = futureValOZ - deferredTaxLiability;
+        <div class="kpis">
+          <div class="kpi">
+            <div class="lbl">Projected ending value (allocation × multiple)</div>
+            <div class="val good" id="pepEnd">$—</div>
+            <div class="subval" id="pepEndExplain">—</div>
+          </div>
+          <div class="kpi">
+            <div class="lbl">Projected appreciation</div>
+            <div class="val" id="pepGain">$—</div>
+            <div class="subval" id="pepGainExplain">—</div>
+          </div>
+        </div>
 
-            // --- Update Results ---
-            els.valDeferred.innerText = fmt.format(deferredTaxLiability);
-            els.valSaved.innerText = fmt.format(ozFinal - standardFinal);
-            
-            els.valOzFinal.innerText = fmt.format(ozFinal);
-            els.valOzFinalSm.innerText = fmt.format(ozFinal);
-            els.valStdFinal.innerText = fmt.format(standardFinal);
-            
-            els.textDiff.innerText = fmt.format(ozFinal - standardFinal);
+        <div class="kpis">
+          <div class="kpi">
+            <div class="lbl">If held 10+ years in a QOZ, federal tax on this appreciation may be excluded (concept)</div>
+            <div class="val warn" id="pepTaxSaved">$—</div>
+            <div class="subval" id="pepTaxSavedExplain">—</div>
+          </div>
+          <div class="kpi">
+            <div class="lbl">Reminder: deferred original gain tax still comes due ~2026</div>
+            <div class="val warn" id="pepDeferredReminder">$—</div>
+            <div class="subval" id="pepDeferredReminderExplain">—</div>
+          </div>
+        </div>
 
-            // --- Update Charts ---
-            // Calculate percentage width for Standard relative to OZ
-            let widthPct = 0;
-            if (ozFinal > 0) {
-                widthPct = (standardFinal / ozFinal) * 100;
-            }
-            // Clamp
-            widthPct = Math.max(0, Math.min(100, widthPct));
-            
-            els.barStd.style.width = widthPct + '%';
-        }
+        <div class="callout">
+          <strong>How to use this with an RIA/CPA:</strong><br>
+          1) Left panel answers “QOZ as a strategy.”<br>
+          2) Right panel shows “one example deal outcome if you’re doing QOZ anyway.”<br>
+          Keep them separate so you don’t over-claim.
+        </div>
 
-        // --- Event Listeners ---
-        const inputs = [els.inputGain, els.rangeGain, els.inputFed, els.inputState, els.rangeReturn];
-        
-        inputs.forEach(input => {
-            input.addEventListener('input', (e) => {
-                // Sync Range/Input doubles
-                if (e.target === els.rangeGain) els.inputGain.value = e.target.value;
-                if (e.target === els.inputGain) els.rangeGain.value = e.target.value;
-                calculate();
-            });
-        });
+        <details>
+          <summary>Optional: add a “minimum check” for demo</summary>
+          <div class="fine">
+            Minimum investment mentioned: <span class="mono">$50,000</span> (demo uses $1,000,000). If allocation is below minimum, we’ll flag it.
+          </div>
+        </details>
 
-        // Mobile Menu Toggle
-        els.menuBtn.addEventListener('click', () => {
-            els.mobileMenu.classList.toggle('hidden');
-        });
+        <div class="footer" id="minFlag" style="margin-top:10px;"></div>
+      </section>
+    </div>
 
-        // Initial Calc
-        calculate();
+    <div class="callout" style="margin-top:14px">
+      <strong>Disclosures (keep this):</strong><br>
+      • This page is a simplified educational model. It does not account for your full tax picture, deal documents, fees, K-1 timing, or state-specific rules beyond a simple conform/non-conform toggle.<br>
+      • Projections are not guarantees. Always confirm with a CPA and the fund’s offering documents.
+    </div>
+  </div>
 
-    </script>
+<script>
+(function(){
+  const $ = (id)=>document.getElementById(id);
+
+  function fmtMoney(x){
+    if (!isFinite(x)) return "$—";
+    const s = Math.round(x).toString();
+    return "$" + s.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  }
+  function clamp(n,min,max){ return Math.max(min, Math.min(max, n)); }
+
+  function parseNum(el, fallback=0){
+    const v = Number(el.value);
+    return isFinite(v) ? v : fallback;
+  }
+
+  // Core model:
+  // Path A (No QOZ): pay tax now on gain, invest remaining, grow, pay exit tax on appreciation.
+  // Path B (QOZ): invest pre-tax gain, grow. Deferred original gain tax due in 2026.
+  // If hold >=10, treat appreciation as tax-free federally (concept). State conformity toggle affects whether "tax-free" applies to state.
+  // If deferred tax is paid by selling assets, reduce invested base in 2026 by that amount.
+
+  function calc(){
+    const gain = Math.max(0, parseNum($("gain")));
+    const qofInvest = Math.max(0, parseNum($("qofInvest")));
+    const fed = clamp(parseNum($("fedRate")),0,80)/100;
+    const niit = clamp(parseNum($("niitRate")),0,20)/100;
+    const state = clamp(parseNum($("stateRate")),0,30)/100;
+    const stateConform = $("stateConform").value; // yes/no
+    const hold = clamp(parseNum($("holdYears")),1,30);
+    const r = clamp(parseNum($("assumedReturn")),-99,99)/100;
+    const exitTax = clamp(parseNum($("exitTaxRate")),0,80)/100;
+    const payDeferredFrom = $("payDeferredFrom").value; // outside/sell
+
+    $("tyHold").textContent = hold;
+
+    const totalTaxRateNow = fed + niit + state; // simplified "combined"
+    const eligibleToInvest = Math.min(gain, qofInvest);
+
+    // Deferred tax is on the deferred gain amount (eligibleToInvest assumed deferred).
+    // State conformity: if state doesn't conform, state tax is NOT deferred/excluded; we treat it as still due (simplified).
+    const deferredFedNiiRate = fed + niit;
+    const deferredStateRate = state; // only deferred if state conforms
+    const deferredTaxRate = deferredFedNiiRate + (stateConform === "yes" ? deferredStateRate : 0);
+
+    const deferredTax = eligibleToInvest * deferredTaxRate;
+
+    // Path A: pay full combined tax now on the gain (this is what people intuitively compare).
+    const payNowTax = gain * totalTaxRateNow;
+    const investA = gain - payNowTax;
+    const endA_gross = investA * Math.pow(1 + r, hold);
+
+    // Tax on appreciation at exit for A (simplified).
+    const appreciationA = Math.max(0, endA_gross - investA);
+    const exitTaxA = appreciationA * exitTax;
+    const endA = endA_gross - exitTaxA;
+
+    // Path B: invest eligibleToInvest pre-tax.
+    // If investing less than gain, remaining gain is not in QOZ; for simplicity we ignore it (user can set equal).
+    let investB = eligibleToInvest;
+
+    // Grow until 2026 and then pay deferred tax.
+    // Approx years to 12/31/2026 from "today" is unknown; use a simple 2-year default if hold>=2, else 1.
+    // We keep it "concept" and don’t anchor to today’s date to avoid false precision.
+    const yearsToTax = Math.min(2, hold); // simple
+    const yearsAfterTax = hold - yearsToTax;
+
+    const valueAtTaxTime = investB * Math.pow(1 + r, yearsToTax);
+
+    let valueAfterPayingDeferred = valueAtTaxTime;
+    let paidDeferredFromInvestment = 0;
+
+    if (payDeferredFrom === "sell"){
+      // Pay deferred tax by reducing investment value.
+      paidDeferredFromInvestment = Math.min(deferredTax, valueAfterPayingDeferred);
+      valueAfterPayingDeferred -= paidDeferredFromInvestment;
+    }
+    // Then continue growth to hold horizon
+    const endB_gross = valueAfterPayingDeferred * Math.pow(1 + r, yearsAfterTax);
+
+    // Tax on B appreciation:
+    // If hold >= 10: federal on appreciation assumed excluded; state depends on conformity.
+    // We'll compute an "effective tax on appreciation" for B.
+    const appreciationB = Math.max(0, endB_gross - valueAfterPayingDeferred);
+    let appreciationTaxRateB = 0;
+
+    if (hold < 10){
+      // Not long enough: treat like normal exit tax (simplified).
+      appreciationTaxRateB = exitTax;
+    } else {
+      // 10+ years: federal excluded (concept); state excluded only if conforms.
+      // We approximate state component by using stateRate as a portion of exitTax if user wants more detail,
+      // but simplest: if state doesn't conform, tax appreciation at state rate only.
+      appreciationTaxRateB = (stateConform === "yes") ? 0 : state;
+    }
+
+    const exitTaxB = appreciationB * appreciationTaxRateB;
+    const endB = endB_gross - exitTaxB;
+
+    // Display
+    $("noQozEnd").textContent = fmtMoney(endA);
+    $("qozEnd").textContent = fmtMoney(endB);
+
+    $("noQozExplain").textContent =
+      `Investable today: ${fmtMoney(investA)} (after paying ~${(totalTaxRateNow*100).toFixed(1)}% tax now). ` +
+      `Exit tax assumed on appreciation at ${(exitTax*100).toFixed(1)}%.`;
+
+    const stateNote = (stateConform === "yes")
+      ? "State assumed to conform (simplified)."
+      : "State assumed NOT to conform (e.g., CA) — state tax may still apply.";
+
+    $("qozExplain").textContent =
+      `Investable today: ${fmtMoney(investB)} (pre-tax). Deferred tax due ~2026: ${fmtMoney(deferredTax)}. ` +
+      (hold >= 10 ? `At ${hold} years, appreciation tax modeled as: ${(appreciationTaxRateB*100).toFixed(1)}% (concept). ` : `At ${hold} years, appreciation taxed normally (simplified). `) +
+      stateNote;
+
+    $("deferredTax").textContent = fmtMoney(deferredTax);
+    $("deferredExplain").textContent =
+      `Deferred tax modeled on ${fmtMoney(eligibleToInvest)} of gain at ${(deferredTaxRate*100).toFixed(1)}%. ` +
+      (payDeferredFrom === "outside"
+        ? "Assumes you pay this from outside cash (most favorable)."
+        : `Assumes you sell ~${fmtMoney(paidDeferredFromInvestment)} of the investment to pay it (less favorable).`);
+
+    const delta = endB - endA;
+    $("delta").textContent = fmtMoney(delta);
+    $("delta").className = "val " + (delta >= 0 ? "good" : "bad");
+    $("deltaExplain").textContent =
+      delta >= 0
+        ? "In this scenario, QOZ path ends higher primarily due to larger starting principal + reduced tax on appreciation (if 10+ yrs)."
+        : "In this scenario, QOZ path ends lower (often happens if you must sell to pay deferred tax, or if hold < 10 years).";
+
+    // Right panel (Pepper Tree overlay)
+    const alloc = Math.max(0, parseNum($("pepAlloc")));
+    const multiple = Math.max(0, parseNum($("pepMultiple")));
+    const pepHold = 10; // locked
+    $("pepHold").value = pepHold;
+
+    const pepEnd = alloc * multiple;
+    const pepGain = Math.max(0, pepEnd - alloc);
+
+    $("pepEnd").textContent = fmtMoney(pepEnd);
+    $("pepEndExplain").textContent = `${fmtMoney(alloc)} × ${multiple.toFixed(2)}x = ${fmtMoney(pepEnd)} (projection).`;
+
+    $("pepGain").textContent = fmtMoney(pepGain);
+    $("pepGainExplain").textContent = `Projected appreciation: ${fmtMoney(pepEnd)} − ${fmtMoney(alloc)} = ${fmtMoney(pepGain)}.`;
+
+    // Tax saved on Pepper Tree appreciation under QOZ concept:
+    // Federal excluded; state depends on conformity setting from left panel.
+    const pepAppTaxRate = (stateConform === "yes") ? 0 : state;
+    const pepTaxSaved = pepGain * (fed + niit + (stateConform === "yes" ? state : 0)); // what would have been paid if fully taxable
+    const pepTaxStill = pepGain * pepAppTaxRate;
+
+    $("pepTaxSaved").textContent = fmtMoney(pepTaxSaved);
+    $("pepTaxSavedExplain").textContent =
+      `Concept: if fully taxable, appreciation might face ~${((fed+niit+state)*100).toFixed(1)}% combined. ` +
+      `With 10+yr QOZ assumption, modeled appreciation tax: ${(pepAppTaxRate*100).toFixed(1)}% (state only if non-conforming).`;
+
+    $("pepDeferredReminder").textContent = fmtMoney(deferredTax);
+    $("pepDeferredReminderExplain").textContent =
+      `This is the “you still owe it” number — deferred original gain tax modeled due ~2026.`;
+
+    // Minimum flag
+    const min = 50000;
+    const minFlag = $("minFlag");
+    if (alloc > 0 && alloc < min){
+      minFlag.textContent = `Heads up: allocation ${fmtMoney(alloc)} is below the stated $50,000 minimum (demo flag).`;
+      minFlag.style.color = "var(--warn)";
+    } else {
+      minFlag.textContent = "";
+    }
+
+    // Persist params in URL (for share links)
+    syncToUrl();
+  }
+
+  function resetDemo(){
+    $("gain").value = 4000000;
+    $("qofInvest").value = 4000000;
+    $("fedRate").value = 20;
+    $("niitRate").value = 3.8;
+    $("stateRate").value = 13.3;
+    $("stateConform").value = "no";
+    $("holdYears").value = 10;
+    $("assumedReturn").value = 10;
+    $("payDeferredFrom").value = "outside";
+    $("exitTaxRate").value = 23.8;
+
+    $("pepAlloc").value = 1000000;
+    $("pepMultiple").value = 2.5;
+    $("pepCoC").value = 8;
+    $("pepPref").value = 8;
+    $("pepPromote").value = 20;
+
+    calc();
+  }
+
+  function getParams(){
+    const p = new URLSearchParams(location.search);
+    const obj = {};
+    for (const [k,v] of p.entries()) obj[k]=v;
+    return obj;
+  }
+
+  function applyFromUrl(){
+    const p = getParams();
+    const map = {
+      gain:"gain", qofInvest:"qofInvest", fed:"fedRate", niit:"niitRate", state:"stateRate",
+      conform:"stateConform", hold:"holdYears", r:"assumedReturn", pay:"payDeferredFrom", exit:"exitTaxRate",
+      alloc:"pepAlloc", mult:"pepMultiple"
+    };
+    Object.keys(map).forEach(key=>{
+      if (p[key] != null && $(map[key])) $(map[key]).value = p[key];
+    });
+  }
+
+  function syncToUrl(){
+    const p = new URLSearchParams();
+    p.set("gain", $("gain").value);
+    p.set("qofInvest", $("qofInvest").value);
+    p.set("fed", $("fedRate").value);
+    p.set("niit", $("niitRate").value);
+    p.set("state", $("stateRate").value);
+    p.set("conform", $("stateConform").value);
+    p.set("hold", $("holdYears").value);
+    p.set("r", $("assumedReturn").value);
+    p.set("pay", $("payDeferredFrom").value);
+    p.set("exit", $("exitTaxRate").value);
+    p.set("alloc", $("pepAlloc").value);
+    p.set("mult", $("pepMultiple").value);
+
+    const newUrl = location.pathname + "?" + p.toString();
+    history.replaceState(null, "", newUrl);
+  }
+
+  async function copyLink(){
+    try{
+      const url = location.href;
+      await navigator.clipboard.writeText(url);
+      alert("Copied link with current inputs.");
+    }catch(e){
+      alert("Couldn’t copy automatically. You can manually copy the URL in the address bar.");
+    }
+  }
+
+  // Wire up
+  $("recalc").addEventListener("click", calc);
+  $("resetDemo").addEventListener("click", resetDemo);
+  $("copyLink").addEventListener("click", copyLink);
+
+  // Recalc on input changes (nice UX)
+  const inputs = ["gain","qofInvest","fedRate","niitRate","stateRate","stateConform","holdYears","assumedReturn","payDeferredFrom","exitTaxRate","pepAlloc","pepMultiple"];
+  inputs.forEach(id=>{
+    $(id).addEventListener("input", ()=>calc());
+    $(id).addEventListener("change", ()=>calc());
+  });
+
+  // Init
+  applyFromUrl();
+  calc();
+})();
+</script>
 </body>
 </html>
